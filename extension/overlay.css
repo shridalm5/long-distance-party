@@ -1,0 +1,251 @@
+/* Long Distance Party — Overlay Styles */
+
+#ldp-overlay {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 300px;
+  background: rgba(15, 15, 26, 0.95);
+  border: 1px solid #2a2a4a;
+  border-radius: 12px;
+  color: #eaeaea;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  z-index: 2147483647;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.ldp-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(26, 26, 46, 0.9);
+  border-bottom: 1px solid #2a2a4a;
+  cursor: move;
+  user-select: none;
+}
+
+.ldp-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.ldp-platform {
+  color: #e94560;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.ldp-toggle {
+  background: none;
+  border: 1px solid #2a2a4a;
+  color: #eaeaea;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ldp-toggle:hover {
+  background: #2a2a4a;
+}
+
+.ldp-body {
+  padding: 12px 14px;
+}
+
+.ldp-body.hidden {
+  display: none;
+}
+
+.ldp-section.hidden {
+  display: none;
+}
+
+/* Login */
+.ldp-login input[type="text"] {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  background: #0f0f1a;
+  color: #eaeaea;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.ldp-login input:focus {
+  border-color: #e94560;
+}
+
+#ldp-room-code {
+  width: 70px;
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+
+/* Buttons */
+.ldp-btn-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ldp-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #2a2a4a;
+  color: #eaeaea;
+  transition: background 0.2s;
+}
+
+.ldp-btn:hover {
+  background: #3a3a5a;
+}
+
+.ldp-btn-primary {
+  background: #e94560;
+  color: white;
+}
+
+.ldp-btn-primary:hover {
+  background: #ff6b81;
+}
+
+.ldp-btn-small {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.ldp-btn-danger {
+  background: #5a2020;
+  color: #ff6b6b;
+}
+
+.ldp-btn-danger:hover {
+  background: #7a2020;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Room info */
+.ldp-room-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.ldp-room-info strong {
+  color: #e94560;
+  letter-spacing: 2px;
+}
+
+.ldp-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(233, 69, 96, 0.2);
+  color: #e94560;
+}
+
+/* Members */
+.ldp-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.ldp-member {
+  font-size: 11px;
+  padding: 2px 6px;
+  background: rgba(42, 42, 74, 0.6);
+  border-radius: 4px;
+}
+
+/* Status */
+.ldp-status {
+  font-size: 11px;
+  color: #888;
+  padding: 4px 0;
+}
+
+/* Chat */
+.ldp-chat {
+  max-height: 120px;
+  overflow-y: auto;
+  margin: 6px 0;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+}
+
+.ldp-chat-msg {
+  font-size: 11px;
+  padding: 2px 0;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.ldp-system {
+  color: #888;
+  font-style: italic;
+}
+
+.ldp-chat-input {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.ldp-chat-input input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  background: #0f0f1a;
+  color: #eaeaea;
+  font-size: 12px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.ldp-chat-input input:focus {
+  border-color: #e94560;
+}
+
+/* Scrollbar */
+.ldp-chat::-webkit-scrollbar {
+  width: 4px;
+}
+
+.ldp-chat::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ldp-chat::-webkit-scrollbar-thumb {
+  background: #2a2a4a;
+  border-radius: 2px;
+}

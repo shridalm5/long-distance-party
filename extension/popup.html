@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      width: 260px;
+      padding: 16px;
+      background: #0f0f1a;
+      color: #eaeaea;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 13px;
+      margin: 0;
+    }
+    h2 { margin: 0 0 8px; font-size: 16px; }
+    p { color: #888; margin: 4px 0; line-height: 1.5; }
+    .label { color: #e94560; font-weight: 600; }
+    .server-input {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      border: 1px solid #2a2a4a;
+      border-radius: 6px;
+      background: #1a1a2e;
+      color: #eaeaea;
+      font-size: 12px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .server-input:focus { border-color: #e94560; }
+    .btn {
+      padding: 8px 14px;
+      background: #e94560;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 12px;
+      width: 100%;
+    }
+    .btn:hover { background: #ff6b81; }
+    .status { color: #2ecc71; font-size: 11px; margin-top: 8px; display: none; }
+    .supported { margin-top: 12px; padding-top: 8px; border-top: 1px solid #2a2a4a; }
+    .supported span { 
+      display: inline-block; padding: 2px 6px; margin: 2px;
+      background: #1a1a2e; border-radius: 4px; font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎬 Long Distance Party</h2>
+  <p>Navigate to a supported streaming site to see the sync overlay.</p>
+
+  <p class="label">Server URL</p>
+  <input type="text" class="server-input" id="server-url" value="http://localhost:3000" />
+  <button class="btn" id="save-btn">Save Server URL</button>
+  <p class="status" id="status">✅ Saved!</p>
+
+  <div class="supported">
+    <p class="label">Supported Sites</p>
+    <span>Prime Video</span>
+    <span>Netflix</span>
+    <span>YouTube</span>
+    <span>Disney+</span>
+    <span>Hotstar</span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
