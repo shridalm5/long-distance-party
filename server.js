@@ -163,10 +163,10 @@ io.on("connection", (socket) => {
     console.log(`${safeName} joined room ${code}`);
   });
 
-  // Host sync events: play, pause, seek
+  // Sync events: any member can control playback
   socket.on("sync-play", (currentTime) => {
     const room = rooms.get(socket.roomCode);
-    if (!room || room.hostId !== socket.id) return;
+    if (!room) return;
 
     room.playbackState = { playing: true, currentTime, lastUpdate: Date.now() };
     socket.to(socket.roomCode).emit("sync-play", currentTime);
@@ -174,7 +174,7 @@ io.on("connection", (socket) => {
 
   socket.on("sync-pause", (currentTime) => {
     const room = rooms.get(socket.roomCode);
-    if (!room || room.hostId !== socket.id) return;
+    if (!room) return;
 
     room.playbackState = { playing: false, currentTime, lastUpdate: Date.now() };
     socket.to(socket.roomCode).emit("sync-pause", currentTime);
@@ -182,16 +182,16 @@ io.on("connection", (socket) => {
 
   socket.on("sync-seek", (currentTime) => {
     const room = rooms.get(socket.roomCode);
-    if (!room || room.hostId !== socket.id) return;
+    if (!room) return;
 
     room.playbackState = { ...room.playbackState, currentTime, lastUpdate: Date.now() };
     socket.to(socket.roomCode).emit("sync-seek", currentTime);
   });
 
-  // Heartbeat: host periodically sends current time so others can correct drift
+  // Heartbeat: the user who last triggered play sends periodic time updates
   socket.on("sync-heartbeat", (currentTime) => {
     const room = rooms.get(socket.roomCode);
-    if (!room || room.hostId !== socket.id) return;
+    if (!room) return;
 
     room.playbackState.currentTime = currentTime;
     room.playbackState.lastUpdate = Date.now();

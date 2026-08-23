@@ -39,8 +39,6 @@
         <div class="room-header">
           <h2>Room: <span id="display-room-code"></span></h2>
           <button id="btn-copy-code" class="btn btn-small" title="Copy room code">📋 Copy</button>
-          <span id="host-badge" class="badge hidden">👑 You are the Host</span>
-          <span id="guest-badge" class="badge hidden">🎉 Synced to Host</span>
         </div>
 
         <div class="video-container">
@@ -56,6 +54,19 @@
 
         <div id="sync-status" class="sync-status">
           <span class="sync-dot"></span> Waiting for video...
+        </div>
+
+        <div class="controls-bar">
+          <div class="jump-to-time">
+            <label>Jump to:</label>
+            <input type="number" id="jump-hr" placeholder="HH" min="0" max="99" />
+            <span>:</span>
+            <input type="number" id="jump-min" placeholder="MM" min="0" max="59" />
+            <span>:</span>
+            <input type="number" id="jump-sec" placeholder="SS" min="0" max="59" />
+            <button id="btn-jump" class="btn btn-small">Go</button>
+          </div>
+          <button id="btn-new-session" class="btn btn-secondary btn-small">🔄 New Session</button>
         </div>
       </div>
 
