@@ -25,6 +25,8 @@ const jumpMin = document.getElementById("jump-min");
 const jumpSec = document.getElementById("jump-sec");
 const btnJump = document.getElementById("btn-jump");
 const btnNewSession = document.getElementById("btn-new-session");
+const btnClaimHost = document.getElementById("btn-claim-host");
+const btnResync = document.getElementById("btn-resync");
 
 let isHost = false;
 let ignoreEvents = false;
@@ -82,9 +84,11 @@ function applyHostUI(host) {
   if (host) {
     hostBadge.classList.remove("hidden");
     guestBadge.classList.add("hidden");
+    btnClaimHost.classList.add("hidden");
   } else {
     guestBadge.classList.remove("hidden");
     hostBadge.classList.add("hidden");
+    btnClaimHost.classList.remove("hidden");
   }
 }
 
@@ -149,6 +153,47 @@ socket.on("new-host", (newHostId) => {
     const session = loadSession();
     if (session) saveSession(session.roomCode, session.username, true);
     startHeartbeat();
+  } else {
+    applyHostUI(false);
+    const session = loadSession();
+    if (session) saveSession(session.roomCode, session.username, false);
+  }
+});
+
+// ── Claim Host ──
+
+btnClaimHost.addEventListener("click", () => {
+  socket.emit("claim-host");
+});
+
+// ── Resync ──
+
+btnResync.addEventListener("click", () => {
+  if (isHost) {
+    // Host sends its current state to force-sync everyone
+    socket.emit("force-sync", {
+      currentTime: videoPlayer.currentTime,
+      playing: !videoPlayer.paused,
+    });
+    updateSyncStatus("synced", "Resync sent to all members");
+  } else {
+    // Guest requests the host's current state via heartbeat correction
+    socket.emit("request-resync");
+    updateSyncStatus("synced", "Resync requested from host");
+  }
+});
+
+socket.on("force-sync", ({ currentTime, playing }) => {
+  if (isHost) return;
+  ignoreEvents = true;
+  videoPlayer.currentTime = currentTime;
+  if (playing) {
+    videoPlayer.play().finally(() => (ignoreEvents = false));
+    updateSyncStatus("playing", "Playing — resynced to host");
+  } else {
+    videoPlayer.pause();
+    ignoreEvents = false;
+    updateSyncStatus("synced", "Paused — resynced to host");
   }
 });
 

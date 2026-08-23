@@ -198,6 +198,47 @@ io.on("connection", (socket) => {
     socket.to(socket.roomCode).emit("sync-heartbeat", currentTime);
   });
 
+  // Claim host: any member can take over as host
+  socket.on("claim-host", () => {
+    const room = rooms.get(socket.roomCode);
+    if (!room) return;
+    if (isRateLimited(socket.id)) return;
+
+    // Update old host
+    const oldHost = room.members.find((m) => m.id === room.hostId);
+    if (oldHost) oldHost.isHost = false;
+
+    // Set new host
+    room.hostId = socket.id;
+    const newHost = room.members.find((m) => m.id === socket.id);
+    if (newHost) newHost.isHost = true;
+
+    io.to(socket.roomCode).emit("new-host", socket.id);
+    io.to(socket.roomCode).emit("member-update", room.members);
+    io.to(socket.roomCode).emit("chat-message", {
+      username: "System",
+      message: `${socket.username} claimed host 👑`,
+      isSystem: true,
+    });
+
+    console.log(`${socket.username} claimed host in room ${socket.roomCode}`);
+  });
+
+  // Resync: host broadcasts current playback state to force everyone back in sync
+  socket.on("request-resync", () => {
+    const room = rooms.get(socket.roomCode);
+    if (!room || room.hostId !== socket.id) return;
+    // Ask host client for its current time — host will respond with force-sync
+  });
+
+  socket.on("force-sync", ({ currentTime, playing }) => {
+    const room = rooms.get(socket.roomCode);
+    if (!room || room.hostId !== socket.id) return;
+
+    room.playbackState = { playing, currentTime, lastUpdate: Date.now() };
+    socket.to(socket.roomCode).emit("force-sync", { currentTime, playing });
+  });
+
   // Chat
   socket.on("chat-message", (message) => {
     if (!socket.roomCode) return;
