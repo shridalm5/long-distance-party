@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Long Distance Party 🎬</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Landing Screen -->
+  <div id="landing-screen" class="screen active">
+    <div class="landing-container">
+      <h1>🎬 Long Distance Party</h1>
+      <p class="tagline">Watch together, miles apart</p>
+
+      <div class="form-group">
+        <label for="username">Your Name</label>
+        <input type="text" id="username" placeholder="Enter your name" maxlength="20" />
+      </div>
+
+      <div class="button-row">
+        <button id="btn-create" class="btn btn-primary">Create Room</button>
+        <span class="or-divider">or</span>
+        <div class="join-group">
+          <input type="text" id="room-code-input" placeholder="Room Code" maxlength="6" />
+          <button id="btn-join" class="btn btn-secondary">Join</button>
+        </div>
+      </div>
+
+      <div id="error-message" class="error-message"></div>
+    </div>
+  </div>
+
+  <!-- Room Screen -->
+  <div id="room-screen" class="screen">
+    <div class="room-layout">
+      <!-- Video Area -->
+      <div class="video-area">
+        <div class="room-header">
+          <h2>Room: <span id="display-room-code"></span></h2>
+          <button id="btn-copy-code" class="btn btn-small" title="Copy room code">📋 Copy</button>
+          <span id="host-badge" class="badge hidden">👑 You are the Host</span>
+          <span id="guest-badge" class="badge hidden">🎉 Synced to Host</span>
+        </div>
+
+        <div class="video-container">
+          <video id="video-player" controls>
+            <p>Your browser doesn't support HTML5 video.</p>
+          </video>
+          <div id="video-placeholder" class="video-placeholder">
+            <p>🎬 Load a video file to get started</p>
+            <label for="video-file" class="btn btn-primary file-label">Choose Video File</label>
+            <input type="file" id="video-file" accept="video/*" hidden />
+          </div>
+        </div>
+
+        <div id="sync-status" class="sync-status">
+          <span class="sync-dot"></span> Waiting for video...
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <!-- Members -->
+        <div class="members-panel">
+          <h3>Party Members</h3>
+          <ul id="members-list"></ul>
+        </div>
+
+        <!-- Chat -->
+        <div class="chat-panel">
+          <h3>Chat</h3>
+          <div id="chat-messages" class="chat-messages"></div>
+          <div class="chat-input-row">
+            <input type="text" id="chat-input" placeholder="Type a message..." maxlength="200" />
+            <button id="btn-send-chat" class="btn btn-small">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

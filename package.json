@@ -1,0 +1,14 @@
+{
+  "name": "long-distance-party",
+  "version": "1.0.0",
+  "description": "A watch party app to sync local video playback across friends",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "socket.io": "^4.7.5"
+  }
+}
