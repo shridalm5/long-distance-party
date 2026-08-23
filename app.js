@@ -10,6 +10,8 @@ const btnJoin = document.getElementById("btn-join");
 const errorMessage = document.getElementById("error-message");
 const displayRoomCode = document.getElementById("display-room-code");
 const btnCopyCode = document.getElementById("btn-copy-code");
+const hostBadge = document.getElementById("host-badge");
+const guestBadge = document.getElementById("guest-badge");
 const videoPlayer = document.getElementById("video-player");
 const videoPlaceholder = document.getElementById("video-placeholder");
 const videoFileInput = document.getElementById("video-file");
@@ -24,15 +26,16 @@ const jumpSec = document.getElementById("jump-sec");
 const btnJump = document.getElementById("btn-jump");
 const btnNewSession = document.getElementById("btn-new-session");
 
-let ignoreEvents = false; // prevent echo loops
+let isHost = false;
+let ignoreEvents = false;
 let heartbeatTimer = null;
-const SYNC_THRESHOLD = 0.5; // seconds of allowed drift
-const HEARTBEAT_INTERVAL = 3000; // ms
+const SYNC_THRESHOLD = 0.5;
+const HEARTBEAT_INTERVAL = 3000;
 
 // ── Session Persistence ──
 
-function saveSession(roomCode, username) {
-  sessionStorage.setItem("ldp_session", JSON.stringify({ roomCode, username }));
+function saveSession(roomCode, username, host) {
+  sessionStorage.setItem("ldp_session", JSON.stringify({ roomCode, username, isHost: host }));
 }
 
 function loadSession() {
@@ -53,7 +56,7 @@ if (savedSession) {
   socket.emit("rejoin-room", {
     roomCode: savedSession.roomCode,
     username: savedSession.username,
-    wasHost: false,
+    wasHost: savedSession.isHost,
   });
 }
 
@@ -72,6 +75,17 @@ function showLanding() {
 function showError(msg) {
   errorMessage.textContent = msg;
   setTimeout(() => (errorMessage.textContent = ""), 4000);
+}
+
+function applyHostUI(host) {
+  isHost = host;
+  if (host) {
+    hostBadge.classList.remove("hidden");
+    guestBadge.classList.add("hidden");
+  } else {
+    guestBadge.classList.remove("hidden");
+    hostBadge.classList.add("hidden");
+  }
 }
 
 // ── Landing Actions ──
@@ -101,18 +115,22 @@ roomCodeInput.addEventListener("keydown", (e) => {
 
 socket.on("room-created", (data) => {
   displayRoomCode.textContent = data.roomCode;
+  applyHostUI(true);
   updateMembers(data.members);
-  saveSession(data.roomCode, usernameInput.value.trim());
+  saveSession(data.roomCode, usernameInput.value.trim(), true);
   showRoom();
   startHeartbeat();
 });
 
 socket.on("room-joined", (data) => {
   displayRoomCode.textContent = data.roomCode;
+  applyHostUI(data.isHost);
   updateMembers(data.members);
   const session = loadSession();
-  saveSession(data.roomCode, session?.username || usernameInput.value.trim());
+  saveSession(data.roomCode, session?.username || usernameInput.value.trim(), data.isHost);
   showRoom();
+
+  if (data.isHost) startHeartbeat();
 
   if (data.rejoined) {
     updateSyncStatus("synced", "Reconnected! Please reload your video file.");
@@ -125,6 +143,15 @@ socket.on("session-expired", () => {
   clearSession();
 });
 
+socket.on("new-host", (newHostId) => {
+  if (socket.id === newHostId) {
+    applyHostUI(true);
+    const session = loadSession();
+    if (session) saveSession(session.roomCode, session.username, true);
+    startHeartbeat();
+  }
+});
+
 // ── New Session ──
 
 btnNewSession.addEventListener("click", () => {
@@ -132,12 +159,14 @@ btnNewSession.addEventListener("click", () => {
   if (heartbeatTimer) clearInterval(heartbeatTimer);
   socket.disconnect();
   socket.connect();
+  isHost = false;
 
-  // Reset UI
   videoPlayer.pause();
   videoPlayer.removeAttribute("src");
   videoPlayer.classList.remove("loaded");
   videoPlaceholder.classList.remove("hidden");
+  hostBadge.classList.add("hidden");
+  guestBadge.classList.add("hidden");
   chatMessages.innerHTML = "";
   membersList.innerHTML = "";
   updateSyncStatus("", "Waiting for video...");
@@ -162,7 +191,7 @@ function updateMembers(members) {
   membersList.innerHTML = "";
   members.forEach((m) => {
     const li = document.createElement("li");
-    li.className = "member-guest";
+    li.className = m.isHost ? "member-host" : "member-guest";
     li.textContent = m.username + (m.id === socket.id ? " (You)" : "");
     membersList.appendChild(li);
   });
@@ -182,81 +211,90 @@ videoFileInput.addEventListener("change", (e) => {
   updateSyncStatus("synced", "Video loaded — ready to play");
 });
 
-// ── Jump to Time ──
+// ── Jump to Time (host only) ──
 
 btnJump.addEventListener("click", () => {
+  if (!isHost) return;
   const h = parseInt(jumpHr.value) || 0;
   const m = parseInt(jumpMin.value) || 0;
   const s = parseInt(jumpSec.value) || 0;
   const totalSeconds = h * 3600 + m * 60 + s;
 
-  if (totalSeconds < 0) return;
-  if (!videoPlayer.src) return;
+  if (totalSeconds < 0 || !videoPlayer.src) return;
 
   videoPlayer.currentTime = totalSeconds;
   socket.emit("sync-seek", totalSeconds);
 });
 
-// ── Sync: Anyone → Server ──
+// ── Sync: Host → Server (only host sends) ──
 
 videoPlayer.addEventListener("play", () => {
   if (ignoreEvents) return;
-  socket.emit("sync-play", videoPlayer.currentTime);
-  updateSyncStatus("playing", "Playing — syncing to party");
-  startHeartbeat();
+  if (isHost) {
+    socket.emit("sync-play", videoPlayer.currentTime);
+    updateSyncStatus("playing", "Playing — syncing to party");
+  }
 });
 
 videoPlayer.addEventListener("pause", () => {
   if (ignoreEvents) return;
-  socket.emit("sync-pause", videoPlayer.currentTime);
-  updateSyncStatus("synced", "Paused");
+  if (isHost) {
+    socket.emit("sync-pause", videoPlayer.currentTime);
+    updateSyncStatus("synced", "Paused");
+  }
 });
 
 videoPlayer.addEventListener("seeked", () => {
   if (ignoreEvents) return;
-  socket.emit("sync-seek", videoPlayer.currentTime);
+  if (isHost) {
+    socket.emit("sync-seek", videoPlayer.currentTime);
+  }
 });
 
-// ── Sync: Server → This Client ──
+// ── Sync: Server → Guests (guests receive and follow) ──
 
 socket.on("sync-play", (time) => {
+  if (isHost) return;
   ignoreEvents = true;
   videoPlayer.currentTime = time;
   videoPlayer.play().finally(() => (ignoreEvents = false));
-  updateSyncStatus("playing", "Playing — synced");
+  updateSyncStatus("playing", "Playing — synced to host");
 });
 
 socket.on("sync-pause", (time) => {
+  if (isHost) return;
   ignoreEvents = true;
   videoPlayer.pause();
   videoPlayer.currentTime = time;
   ignoreEvents = false;
-  updateSyncStatus("synced", "Paused — synced");
+  updateSyncStatus("synced", "Paused — synced to host");
 });
 
 socket.on("sync-seek", (time) => {
+  if (isHost) return;
   ignoreEvents = true;
   videoPlayer.currentTime = time;
   ignoreEvents = false;
 });
 
-socket.on("sync-heartbeat", (peerTime) => {
+socket.on("sync-heartbeat", (hostTime) => {
+  if (isHost) return;
   if (!videoPlayer.src) return;
 
-  const drift = Math.abs(videoPlayer.currentTime - peerTime);
+  const drift = Math.abs(videoPlayer.currentTime - hostTime);
   if (drift > SYNC_THRESHOLD) {
     ignoreEvents = true;
-    videoPlayer.currentTime = peerTime;
+    videoPlayer.currentTime = hostTime;
     ignoreEvents = false;
   }
 });
 
-// ── Heartbeat (whoever is playing sends periodic time updates) ──
+// ── Heartbeat (host sends current time periodically) ──
 
 function startHeartbeat() {
   if (heartbeatTimer) clearInterval(heartbeatTimer);
   heartbeatTimer = setInterval(() => {
-    if (!videoPlayer.paused && videoPlayer.src) {
+    if (isHost && !videoPlayer.paused && videoPlayer.src) {
       socket.emit("sync-heartbeat", videoPlayer.currentTime);
     }
   }, HEARTBEAT_INTERVAL);
